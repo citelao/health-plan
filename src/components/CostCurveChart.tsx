@@ -49,7 +49,7 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange, mode }: P
     const isOopMode = mode === 'oop-spend';
     const tier = settings.coverageTier;
     const xMax = isOopMode
-      ? Math.max(...plans.map(p => p.inNetwork.oopMax[tier]))
+      ? Math.max(...plans.map(p => p.inNetwork.oopMax[tier])) * 1.25
       : 25000;
     const xScale = d3.scaleLinear().domain([0, xMax]).range([0, width]);
     const curves = plans.map(plan => ({
@@ -149,7 +149,7 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange, mode }: P
       return curves.map(({ plan, points }, i) => {
         const color = getPlanColor(plan.id, i);
         // interpolate from the sampled curve
-        const idx = Math.min(Math.round((spend / 25000) * (points.length - 1)), points.length - 1);
+        const idx = Math.min(Math.round((spend / xMax) * (points.length - 1)), points.length - 1);
         const cost = points[Math.max(0, idx)].cost;
         return { plan, color, cost };
       }).sort((a, b) => a.cost - b.cost);

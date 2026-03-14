@@ -21,6 +21,15 @@ export function PlanComparison() {
   const [customPlans, setCustomPlans] = useState<PlanParams[]>([]);
   const [chartMode, setChartMode] = useState<ChartMode>('medical-need');
 
+  React.useEffect(() => {
+    if (window.location.hash === '#oop-spend') setChartMode('oop-spend');
+  }, []);
+
+  const switchMode = (mode: ChartMode) => {
+    setChartMode(mode);
+    window.location.hash = mode;
+  };
+
   const allPlans = [...PLANS, ...customPlans];
 
   const addCustomPlan = (plan: PlanParams) => setCustomPlans(prev => [...prev, plan]);
@@ -49,13 +58,13 @@ export function PlanComparison() {
           <div className={styles.tabs}>
             <button
               className={chartMode === 'medical-need' ? styles.tabActive : styles.tab}
-              onClick={() => setChartMode('medical-need')}
+              onClick={() => switchMode('medical-need')}
             >
               By Medical Need
             </button>
             <button
               className={chartMode === 'oop-spend' ? styles.tabActive : styles.tab}
-              onClick={() => setChartMode('oop-spend')}
+              onClick={() => switchMode('oop-spend')}
             >
               By Your OOP Spend
             </button>
