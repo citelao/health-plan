@@ -44,3 +44,23 @@ export function costCurve(plan: PlanParams, settings: UserSettings, points = 200
     return { spend, cost: costAtSpend(plan, settings, spend).totalCost };
   });
 }
+
+// X = what you actually pay out-of-pocket for medical bills (0 → plan OOP max)
+// Y = total annual cost (OOP + premiums − HSA credits)
+export function oopCurve(plan: PlanParams, settings: UserSettings, maxX: number, points = 200): { spend: number; cost: number }[] {
+  const tier = settings.coverageTier;
+  const annualPremium = plan.premiums[tier] * 12;
+  const employerHsaCredit = plan.employerHsaContribution[tier];
+  const hsaTaxSavings = plan.hsaEligible
+    ? (employerHsaCredit + settings.personalHsaContribution) * settings.marginalTaxRate
+    : 0;
+  const base = annualPremium - employerHsaCredit - hsaTaxSavings;
+
+  const oopMax = plan.inNetwork.oopMax[tier];
+
+  return Array.from({ length: points }, (_, i) => {
+    const oop = (i / (points - 1)) * maxX;
+    const cappedOop = Math.min(oop, oopMax);
+    return { spend: oop, cost: base + cappedOop };
+  });
+}

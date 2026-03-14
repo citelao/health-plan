@@ -43,6 +43,32 @@
   gap: 1.5rem;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 0.4rem;
+}
+
+.tab, .tabActive {
+  flex: 1;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background: transparent;
+  color: #64748b;
+}
+
+.tabActive {
+  background: #6366f1;
+  color: white;
+  font-weight: 500;
+}
+
 .customSection {
   margin-top: 1rem;
   display: flex;

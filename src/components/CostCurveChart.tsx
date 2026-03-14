@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import type { PlanParams, UserSettings } from '../data/types';
-import { costCurve } from '../lib/calculator';
+import { costCurve, oopCurve } from '../lib/calculator';
 import { formatCurrency } from '../lib/format';
 import styles from './CostCurveChart.module.css';
 
@@ -17,13 +17,16 @@ function getPlanColor(planId: string, index: number): string {
   return PLAN_COLORS[planId] ?? d3.schemeTableau10[index % 10];
 }
 
+export type ChartMode = 'medical-need' | 'oop-spend';
+
 interface Props {
   plans: PlanParams[];
   settings: UserSettings;
   onMarkedSpendChange: (spend: number) => void;
+  mode: ChartMode;
 }
 
-export function CostCurveChart({ plans, settings, onMarkedSpendChange }: Props) {
+export function CostCurveChart({ plans, settings, onMarkedSpendChange, mode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -43,8 +46,16 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange }: Props) 
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const xScale = d3.scaleLinear().domain([0, 25000]).range([0, width]);
-    const curves = plans.map(plan => ({ plan, points: costCurve(plan, settings) }));
+    const isOopMode = mode === 'oop-spend';
+    const tier = settings.coverageTier;
+    const xMax = isOopMode
+      ? Math.max(...plans.map(p => p.inNetwork.oopMax[tier]))
+      : 25000;
+    const xScale = d3.scaleLinear().domain([0, xMax]).range([0, width]);
+    const curves = plans.map(plan => ({
+      plan,
+      points: isOopMode ? oopCurve(plan, settings, xMax) : costCurve(plan, settings),
+    }));
     const allCosts = curves.flatMap(c => c.points.map(p => p.cost));
     const yMax = Math.max(...allCosts);
     const yScale = d3.scaleLinear().domain([0, yMax * 1.05]).range([height, 0]);
@@ -58,7 +69,7 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange }: Props) 
       .attr('y', 40)
       .attr('fill', '#64748b')
       .attr('text-anchor', 'middle')
-      .text('Total Annual Healthcare Spend');
+      .text(isOopMode ? 'Your Out-of-Pocket Medical Spend' : 'Total Annual Healthcare Spend');
 
     g.append('g')
       .call(d3.axisLeft(yScale).tickFormat(d => `$${(+d / 1000).toFixed(0)}k`))
@@ -191,7 +202,7 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange }: Props) 
 
     markerGroup.call(drag as any);
 
-  }, [plans, settings]);
+  }, [plans, settings, mode]);
 
   return (
     <div className={styles.wrapper} ref={containerRef}>

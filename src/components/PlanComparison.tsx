@@ -3,7 +3,7 @@ import type { PlanParams, UserSettings } from '../data/types';
 import { PLANS } from '../data/plans';
 import { SettingsPanel } from './SettingsPanel';
 import { PlanSummaryTable } from './PlanSummaryTable';
-import { CostCurveChart } from './CostCurveChart';
+import { CostCurveChart, type ChartMode } from './CostCurveChart';
 import { CustomPlanForm } from './CustomPlanForm';
 import styles from './PlanComparison.module.css';
 
@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 export function PlanComparison() {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [customPlans, setCustomPlans] = useState<PlanParams[]>([]);
+  const [chartMode, setChartMode] = useState<ChartMode>('medical-need');
 
   const allPlans = [...PLANS, ...customPlans];
 
@@ -44,10 +45,25 @@ export function PlanComparison() {
           </div>
         </aside>
         <main className={styles.main}>
+          <div className={styles.tabs}>
+            <button
+              className={chartMode === 'medical-need' ? styles.tabActive : styles.tab}
+              onClick={() => setChartMode('medical-need')}
+            >
+              By Medical Need
+            </button>
+            <button
+              className={chartMode === 'oop-spend' ? styles.tabActive : styles.tab}
+              onClick={() => setChartMode('oop-spend')}
+            >
+              By Your OOP Spend
+            </button>
+          </div>
           <CostCurveChart
             plans={allPlans}
             settings={settings}
             onMarkedSpendChange={(spend) => setSettings(s => ({ ...s, markedSpend: spend }))}
+            mode={chartMode}
           />
           <PlanSummaryTable plans={allPlans} settings={settings} />
         </main>
