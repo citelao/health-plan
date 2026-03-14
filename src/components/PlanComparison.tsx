@@ -3,6 +3,7 @@ import type { PlanParams, UserSettings } from '../data/types';
 import { PLANS } from '../data/plans';
 import { SettingsPanel } from './SettingsPanel';
 import { PlanSummaryTable } from './PlanSummaryTable';
+import { CostCurveChart } from './CostCurveChart';
 import styles from './PlanComparison.module.css';
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -30,6 +31,11 @@ export function PlanComparison() {
           <SettingsPanel settings={settings} onChange={setSettings} />
         </aside>
         <main className={styles.main}>
+          <CostCurveChart
+            plans={allPlans}
+            settings={settings}
+            onMarkedSpendChange={(spend) => setSettings(s => ({ ...s, markedSpend: spend }))}
+          />
           <PlanSummaryTable plans={allPlans} settings={settings} />
         </main>
       </div>
