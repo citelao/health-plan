@@ -124,38 +124,67 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange }: Props) 
 
     // Tooltip at marker
     const tooltipGroup = g.append('g').attr('transform', `translate(${markerX},0)`);
-    const tooltipWidth = 150;
-    const tooltipX = markerX + tooltipWidth + 10 > width ? -tooltipWidth - 10 : 10;
+    const tooltipWidth = 160;
+
+    function getTooltipX(mx: number) {
+      return mx + tooltipWidth + 10 > width ? -tooltipWidth - 10 : 10;
+    }
+
+    function getCostAtSpendX(mx: number) {
+      const spend = xScale.invert(mx);
+      return curves.map(({ plan, points }, i) => {
+        const color = getPlanColor(plan.id, i);
+        // interpolate from the sampled curve
+        const idx = Math.min(Math.round((spend / 25000) * (points.length - 1)), points.length - 1);
+        const cost = points[Math.max(0, idx)].cost;
+        return { plan, color, cost };
+      }).sort((a, b) => a.cost - b.cost);
+    }
+
     const tooltipBox = tooltipGroup.append('rect')
-      .attr('x', tooltipX)
+      .attr('x', getTooltipX(markerX))
       .attr('y', 4)
       .attr('rx', 4)
       .attr('fill', 'white')
       .attr('stroke', '#e2e8f0')
       .attr('stroke-width', 1);
 
-    const tooltipItems = curves.map(({ plan, points }, i) => {
-      const color = getPlanColor(plan.id, i);
-      const cost = points.find(p => Math.abs(p.spend - settings.markedSpend) < 200)?.cost
-        ?? costCurve(plan, settings, 2).find(p => p.spend >= settings.markedSpend)?.cost ?? 0;
-      return { plan, color, cost };
-    }).sort((a, b) => a.cost - b.cost);
-
-    tooltipItems.forEach(({ plan, color, cost }, i) => {
-      const row = tooltipGroup.append('g').attr('transform', `translate(${tooltipX + 6},${16 + i * 18})`);
+    const initialItems = getCostAtSpendX(markerX);
+    const tooltipRows = initialItems.map(({ plan, color, cost }, i) => {
+      const row = tooltipGroup.append('g').attr('transform', `translate(${getTooltipX(markerX) + 6},${16 + i * 18})`);
       row.append('rect').attr('width', 10).attr('height', 10).attr('fill', color).attr('rx', 2);
-      row.append('text').attr('x', 14).attr('y', 9).attr('font-size', '11px').attr('fill', '#374151')
+      const label = row.append('text').attr('x', 14).attr('y', 9).attr('font-size', '11px').attr('fill', '#374151')
         .text(`${plan.name}: ${formatCurrency(cost)}`);
+      return { row, label, planId: plan.id };
     });
 
     tooltipBox
       .attr('width', tooltipWidth)
-      .attr('height', tooltipItems.length * 18 + 12);
+      .attr('height', initialItems.length * 18 + 12);
 
-    // Drag behavior
+    function updateTooltip(newX: number) {
+      const tx = getTooltipX(newX);
+      const items = getCostAtSpendX(newX);
+      tooltipBox.attr('x', tx);
+      tooltipRows.forEach(({ row, label, planId }, i) => {
+        const item = items.find(it => it.plan.id === planId);
+        row.attr('transform', `translate(${tx + 6},${16 + i * 18})`);
+        if (item) label.text(`${item.plan.name}: ${formatCurrency(item.cost)}`);
+      });
+    }
+
+    // Drag behavior — move marker and tooltip imperatively, commit to React only on end
     const drag = d3.drag<SVGGElement, unknown>()
       .on('drag', (event) => {
-        const newX = Math.max(0, Math.min(width, event.x));
+        const [pointerX] = d3.pointer(event.sourceEvent, g.node());
+        const newX = Math.max(0, Math.min(width, pointerX));
+        markerGroup.attr('transform', `translate(${newX},0)`);
+        tooltipGroup.attr('transform', `translate(${newX},0)`);
+        updateTooltip(newX);
+      })
+      .on('end', (event) => {
+        const [pointerX] = d3.pointer(event.sourceEvent, g.node());
+        const newX = Math.max(0, Math.min(width, pointerX));
         const newSpend = Math.round(xScale.invert(newX));
         onMarkedSpendChange(newSpend);
       });
