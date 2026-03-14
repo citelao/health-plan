@@ -1,5 +1,7 @@
 export type CoverageTier = "employee" | "employee_spouse" | "employee_children" | "family";
 
+export type ChartMode = "medical-need" | "oop-spend";
+
 export interface PlanParams {
   id: string;
   name: string;

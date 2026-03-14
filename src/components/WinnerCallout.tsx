@@ -7,9 +7,11 @@ import styles from './WinnerCallout.module.css';
 interface Props {
   plans: PlanParams[];
   settings: UserSettings;
+  mode: 'medical-need' | 'oop-spend';
 }
 
-export function WinnerCallout({ plans, settings }: Props) {
+export function WinnerCallout({ plans, settings, mode }: Props) {
+  if (mode === 'oop-spend') return null;
   const refPlan = plans.find(p => p.id === 'hdhp-premium');
   if (!refPlan) return null;
 

@@ -76,7 +76,7 @@ export function PlanComparison() {
             onMarkedSpendChange={(spend) => setSettings(s => ({ ...s, markedSpend: spend }))}
             mode={chartMode}
           />
-          <WinnerCallout plans={allPlans} settings={settings} />
+          <WinnerCallout plans={allPlans} settings={settings} mode={chartMode} />
           <PlanSummaryTable plans={allPlans} settings={settings} />
           <PlanDetailsTable plans={allPlans} settings={settings} />
         </main>
