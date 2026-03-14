@@ -57,22 +57,25 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange, mode }: P
       points: isOopMode ? oopCurve(plan, settings, xMax) : costCurve(plan, settings),
     }));
     const allCosts = curves.flatMap(c => c.points.map(p => p.cost));
+    const yMin = Math.min(...allCosts);
     const yMax = Math.max(...allCosts);
-    const yScale = d3.scaleLinear().domain([0, yMax * 1.05]).range([height, 0]);
+    const yPad = (yMax - yMin) * 0.05;
+    const yScale = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([height, 0]);
 
     // Axes
     g.append('g')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d => `$${(+d / 1000).toFixed(0)}k`))
-      .append('text')
+      .attr('transform', `translate(0,${yScale(0)})`)
+      .call(d3.axisBottom(xScale).tickFormat(d => d3.format('$~s')(+d).replace('G', 'B')));
+
+    g.append('text')
       .attr('x', width / 2)
-      .attr('y', 40)
+      .attr('y', height + 40)
       .attr('fill', '#64748b')
       .attr('text-anchor', 'middle')
       .text(isOopMode ? 'Your Out-of-Pocket Medical Spend' : 'Total Annual Healthcare Spend');
 
     g.append('g')
-      .call(d3.axisLeft(yScale).tickFormat(d => `$${(+d / 1000).toFixed(0)}k`))
+      .call(d3.axisLeft(yScale).tickFormat(d => d3.format('$~s')(+d).replace('G', 'B')))
       .append('text')
       .attr('transform', 'rotate(-90)')
       .attr('x', -height / 2)
