@@ -66,6 +66,17 @@
   color: #1e40af;
 }
 
+.hsaHint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.hsaWarning {
+  font-size: 0.75rem;
+  color: #b45309;
+  font-weight: 500;
+}
+
 .presets {
   display: flex;
   align-items: center;

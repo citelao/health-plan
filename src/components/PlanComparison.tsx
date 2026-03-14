@@ -6,6 +6,7 @@ import { PlanSummaryTable } from './PlanSummaryTable';
 import { CostCurveChart, type ChartMode } from './CostCurveChart';
 import { CustomPlanForm } from './CustomPlanForm';
 import { PlanDetailsTable } from './PlanDetailsTable';
+import { WinnerCallout } from './WinnerCallout';
 import styles from './PlanComparison.module.css';
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -75,6 +76,7 @@ export function PlanComparison() {
             onMarkedSpendChange={(spend) => setSettings(s => ({ ...s, markedSpend: spend }))}
             mode={chartMode}
           />
+          <WinnerCallout plans={allPlans} settings={settings} />
           <PlanSummaryTable plans={allPlans} settings={settings} />
           <PlanDetailsTable plans={allPlans} settings={settings} />
         </main>

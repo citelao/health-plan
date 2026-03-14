@@ -1,0 +1,125 @@
+.callout {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.header {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+}
+
+.headerLosing {
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+}
+
+.headline {
+  font-size: 1rem;
+  color: #14532d;
+}
+
+.headerLosing .headline {
+  color: #713f12;
+}
+
+.body {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.noCrossover {
+  font-size: 0.9rem;
+  color: #166534;
+  font-weight: 500;
+}
+
+.crossovers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.crossoverLabel {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.crossoverItem {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.crossoverPlan {
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.probability {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+}
+
+.probLabel {
+  font-size: 0.85rem;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.probInputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.probInputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.probInputs input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100px;
+}
+
+.probTo {
+  font-size: 0.9rem;
+  color: #64748b;
+  padding-bottom: 0.35rem;
+}
+
+.probResult {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.probNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.probDesc {
+  font-size: 0.85rem;
+  color: #64748b;
+}

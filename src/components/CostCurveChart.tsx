@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import type { PlanParams, UserSettings } from '../data/types';
-import { costCurve, oopCurve } from '../lib/calculator';
+import { costCurve, oopCurve, findCrossovers, costAtSpend } from '../lib/calculator';
 import { formatCurrency } from '../lib/format';
 import styles from './CostCurveChart.module.css';
 
@@ -98,6 +98,46 @@ export function CostCurveChart({ plans, settings, onMarkedSpendChange, mode }: P
         .attr('stroke-width', 2.5)
         .attr('d', line);
     });
+
+    // Crossover annotations vs HDHP Premium (medical-need mode only)
+    if (!isOopMode) {
+      const refPlan = plans.find(p => p.id === 'hdhp-premium');
+      if (refPlan) {
+        const refColor = getPlanColor('hdhp-premium', plans.findIndex(p => p.id === 'hdhp-premium'));
+        curves.forEach(({ plan }, i) => {
+          if (plan.id === 'hdhp-premium') return;
+          const crossovers = findCrossovers(refPlan, plan, settings);
+          crossovers.forEach(({ spend, cheaperAfter }) => {
+            if (spend < 0 || spend > xMax) return;
+            const label = cheaperAfter === 'plan2'
+              ? `${plan.name} cheaper ▶`
+              : `◀ HDHP Premium cheaper`;
+            const x = xScale(spend);
+            const y = yScale(costAtSpend(refPlan, settings, spend).totalCost);
+            const color = getPlanColor(plan.id, i);
+            g.append('line')
+              .attr('x1', x).attr('x2', x)
+              .attr('y1', 0).attr('y2', height)
+              .attr('stroke', '#6b7280')
+              .attr('stroke-width', 1)
+              .attr('stroke-dasharray', '3,3');
+            g.append('circle')
+              .attr('cx', x).attr('cy', y)
+              .attr('r', 5)
+              .attr('fill', 'white')
+              .attr('stroke', color)
+              .attr('stroke-width', 2);
+            g.append('text')
+              .attr('x', cheaperAfter === 'plan2' ? x + 5 : x - 5)
+              .attr('text-anchor', cheaperAfter === 'plan2' ? 'start' : 'end')
+              .attr('y', yScale(0) - 6)
+              .attr('font-size', '10px')
+              .attr('fill', '#374151')
+              .text(`${label} ${formatCurrency(spend)}`);
+          });
+        });
+      }
+    }
 
     // Legend
     const legend = svg.append('g').attr('transform', `translate(${width + margin.left + 8},${margin.top})`);

@@ -47,6 +47,63 @@ export function costCurve(plan: PlanParams, settings: UserSettings, points = 200
 
 // X = what you actually pay out-of-pocket for medical bills (0 → plan OOP max)
 // Y = total annual cost (OOP + premiums − HSA credits)
+export interface Crossover {
+  spend: number;
+  /** Which plan is cheaper *after* this crossover point */
+  cheaperAfter: 'plan1' | 'plan2';
+}
+
+/**
+ * Returns crossover points where the cheaper plan changes between plan1 and plan2.
+ * diff = cost_plan1 - cost_plan2:
+ *   negative → plan1 is cheaper; positive → plan2 is cheaper
+ */
+export function findCrossovers(
+  plan1: PlanParams,
+  plan2: PlanParams,
+  settings: UserSettings,
+  points = 400,
+): Crossover[] {
+  const curve1 = costCurve(plan1, settings, points);
+  const curve2 = costCurve(plan2, settings, points);
+  const crossovers: Crossover[] = [];
+  for (let i = 1; i < points; i++) {
+    const prev = curve1[i - 1].cost - curve2[i - 1].cost;
+    const curr = curve1[i].cost - curve2[i].cost;
+    if (prev * curr < 0) {
+      const t = prev / (prev - curr);
+      const spend = curve1[i - 1].spend + t * (curve1[i].spend - curve1[i - 1].spend);
+      // curr < 0 means plan1 is now cheaper (diff went negative)
+      crossovers.push({ spend, cheaperAfter: curr < 0 ? 'plan1' : 'plan2' });
+    }
+  }
+  return crossovers;
+}
+
+// P(refPlan is cheapest) assuming spend is uniform over [loSpend, hiSpend]
+export function winProbability(
+  refPlan: PlanParams,
+  allPlans: PlanParams[],
+  settings: UserSettings,
+  loSpend: number,
+  hiSpend: number,
+  points = 400,
+): number {
+  if (loSpend >= hiSpend) {
+    const costs = allPlans.map(p => costAtSpend(p, settings, loSpend).totalCost);
+    const refCost = costAtSpend(refPlan, settings, loSpend).totalCost;
+    return refCost <= Math.min(...costs) ? 1 : 0;
+  }
+  let wins = 0;
+  for (let i = 0; i < points; i++) {
+    const spend = loSpend + (i / (points - 1)) * (hiSpend - loSpend);
+    const refCost = costAtSpend(refPlan, settings, spend).totalCost;
+    const bestCost = Math.min(...allPlans.map(p => costAtSpend(p, settings, spend).totalCost));
+    if (refCost <= bestCost + 0.01) wins++;
+  }
+  return wins / points;
+}
+
 export function oopCurve(plan: PlanParams, settings: UserSettings, maxX: number, points = 200): { spend: number; cost: number }[] {
   const tier = settings.coverageTier;
   const annualPremium = plan.premiums[tier] * 12;

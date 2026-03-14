@@ -89,6 +89,10 @@ export function SettingsPanel({ settings, onChange }: Props) {
           value={settings.personalHsaContribution}
           onChange={e => update({ personalHsaContribution: parseInt(e.target.value, 10) || 0 })}
         />
+        {settings.personalHsaContribution > 4300
+          ? <span className={styles.hsaWarning}>Above the 2026 limit of $4,300/yr (including employer contributions). Excess may incur a 6% penalty.</span>
+          : <span className={styles.hsaHint}>2026 limit: $4,300/yr total including employer HSA</span>
+        }
       </div>
 
       <div className={styles.presets}>
